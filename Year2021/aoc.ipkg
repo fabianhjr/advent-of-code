@@ -1,0 +1,5 @@
+package aoc
+
+depends = base
+
+sourcedir = "./"
