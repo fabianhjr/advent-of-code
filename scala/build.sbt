@@ -12,13 +12,15 @@ val sharedSettings = Seq(
 
 wartremoverErrors ++= Warts.unsafe
 
-lazy val globalDependencies = Seq()
-
 lazy val advent =
   crossProject(JVMPlatform, NativePlatform, JSPlatform)
     .crossType(CrossType.Pure)
     .settings(sharedSettings)
     .settings(
       name := "advent",
-      libraryDependencies ++= globalDependencies
+      libraryDependencies ++= Seq(
+        "co.fs2" %%% "fs2-core" % "3.4.0",
+        "co.fs2" %%% "fs2-io" % "3.4.0",
+        "org.typelevel" %%% "cats-core" % "2.9.0"
+      )
     )
