@@ -25,3 +25,6 @@ lazy val advent =
         "org.typelevel" %%% "cats-effect" % "3.4.2"
       )
     )
+    .jsSettings(
+      Compile / scalaJSUseMainModuleInitializer := true
+    )
