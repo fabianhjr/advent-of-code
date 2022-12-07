@@ -1,0 +1,8 @@
+.bloop/
+.bsp/
+.js/
+.jvm/
+.metals/
+.native/
+project/
+target/
