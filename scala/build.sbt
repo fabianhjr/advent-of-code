@@ -21,6 +21,7 @@ lazy val advent =
       libraryDependencies ++= Seq(
         "co.fs2" %%% "fs2-core" % "3.4.0",
         "co.fs2" %%% "fs2-io" % "3.4.0",
-        "org.typelevel" %%% "cats-core" % "2.9.0"
+        "org.typelevel" %%% "cats-core" % "2.9.0",
+        "org.typelevel" %%% "cats-effect" % "3.4.2"
       )
     )
