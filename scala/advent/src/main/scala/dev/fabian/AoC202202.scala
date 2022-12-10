@@ -1,14 +1,14 @@
 package dev.fabian
 
-import scala.util.Try
-import scala.util.Success
-import scala.io.StdIn.*
+import cats.effect.IOApp
+import cats.effect.IO
 
-object AoC202202 extends App {
+object AoC202202 extends IOApp.Simple {
   enum Opponent:
     case A extends Opponent
     case B extends Opponent
     case C extends Opponent
+
   enum Mine(val value: Int):
     case X extends Mine(1)
     case Y extends Mine(2)
@@ -17,18 +17,18 @@ object AoC202202 extends App {
   import Opponent.*
   import Mine.*
 
-  def mapOpponent(o: Char): Opponent =
+  def mapOpponent(o: String): Opponent =
     o match {
-      case 'A' => A
-      case 'B' => B
-      case 'C' => C
+      case "A" => A
+      case "B" => B
+      case "C" => C
     }
 
-  def mapMine(m: Char): Mine =
+  def mapMine(m: String): Mine =
     m match {
-      case 'X' => X
-      case 'Y' => Y
-      case 'Z' => Z
+      case "X" => X
+      case "Y" => Y
+      case "Z" => Z
     }
 
   def scoreA(o: Opponent, m: Mine) =
@@ -63,20 +63,21 @@ object AoC202202 extends App {
       case (C, Z) => 7
     }
 
-  def readEntry(scoref: (Opponent, Mine) => Long): Try[Long] =
-    Try(readLine()).map { case line: String =>
-      val Array(o, m) = line.split(' ')
-      scoref(mapOpponent(o.head), mapMine(m.head))
-    }
+  override def run: IO[Unit] = for {
+    entries <-
+      read("202202")
+        .filter(_.nonEmpty)
+        .map { l =>
+          val Array(os, ms) = l.split(' ')
+          val (o, m)        = (mapOpponent(os), mapMine(ms))
+          (scoreA(o, m), scoreB(o, m))
+        }
+        .compile
+        .toList
 
-  def loop(scoref: (Opponent, Mine) => Long): Long =
-    readEntry(scoref) match {
-      case Success(v) => v + loop(scoref)
-      case _          => 0
-    }
+    (part1, part2) = entries.unzip
 
-  println("Part 1")
-  println(loop(scoreA))
-  println("Part 2")
-  println(loop(scoreB))
+    _ <- IO.println(s"Part 1: ${part1.sum}")
+    _ <- IO.println(s"Part 2: ${part2.sum}")
+  } yield ()
 }
