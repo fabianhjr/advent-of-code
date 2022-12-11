@@ -19,10 +19,11 @@ lazy val advent =
     .settings(
       name := "advent",
       libraryDependencies ++= Seq(
-        "co.fs2" %%% "fs2-core" % "3.4.0",
-        "co.fs2" %%% "fs2-io" % "3.4.0",
-        "org.typelevel" %%% "cats-core" % "2.9.0",
-        "org.typelevel" %%% "cats-effect" % "3.4.2"
+        "co.fs2"        %%% "fs2-core"    % "3.4.0",
+        "co.fs2"        %%% "fs2-io"      % "3.4.0",
+        "org.typelevel" %%% "cats-core"   % "2.9.0",
+        "org.typelevel" %%% "cats-effect" % "3.4.2",
+        "org.typelevel" %%% "cats-parse"  % "0.3.8"
       )
     )
     .jsSettings(
