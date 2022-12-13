@@ -10,12 +10,10 @@ object AoC202206 extends IOApp.Simple {
     Parser.charWhere(c => !(chars contains c))
 
   def nDifferent(n: Int, notIn: Set[Char] = Set.empty): Parser[Int] =
-    if (n > 1)
-      for {
-        newChar <- anyNotIn(notIn)
-        r       <- nDifferent(n - 1, notIn + newChar)
-      } yield r
-    else anyNotIn(notIn) *> Parser.index
+    anyNotIn(notIn).flatMap { newChar =>
+      if (n > 1) nDifferent(n - 1, notIn + newChar)
+      else Parser.index
+    }
 
   def find(n: Int): Parser[Int] = Parser.recursive { recurse =>
     nDifferent(n).backtrack | (Parser.anyChar *> recurse)
