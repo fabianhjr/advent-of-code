@@ -1,6 +1,7 @@
 package dev.fabian
 
 import scala.annotation.tailrec
+import scala.math.max
 
 import cats.data.NonEmptyList
 import cats.effect.{IO, IOApp}
@@ -13,6 +14,7 @@ object AoC202207 extends IOApp.Simple {
 
   sealed trait FS {
     def name: String
+    def size: Int
   }
   case class File(size: Int, name: String)       extends FS {
     // No Slashes in Name
@@ -23,6 +25,12 @@ object AoC202207 extends IOApp.Simple {
     require(name.forall(_.isLetter))
     // No Name Clashes
     require(content.groupBy(_.name).forall(_._2.size == 1))
+
+    lazy val size: Int = content.partition(_.isInstanceOf[Dir]) match {
+      case (dirs, files) =>
+        dirs.map(_.asInstanceOf[Dir].size).sum +
+          files.map(_.asInstanceOf[File].size).sum
+    }
   }
 
   sealed trait CD               extends Command
@@ -91,12 +99,41 @@ object AoC202207 extends IOApp.Simple {
         )
     }
 
+  def sumOfAllUnder100000(fs: Set[FS]): Int =
+    fs.filter(_.isInstanceOf[Dir]).map(_.size).filter(_ <= 100000).sum +
+      fs.filter(_.isInstanceOf[Dir])
+        .map(_.asInstanceOf[Dir])
+        .map(d => sumOfAllUnder100000(d.content))
+        .sum
+
+  def leastEnough(fs: Set[FS], targetSize: Int): Option[Dir] = {
+    val dirs = fs
+      .filter(_.isInstanceOf[Dir])
+      .map(_.asInstanceOf[Dir])
+
+    val thisLevel   = dirs
+      .filter(_.size >= targetSize)
+    val innerLevels = dirs
+      .map(d => leastEnough(d.content, targetSize))
+      .flatten
+
+    (thisLevel union innerLevels).toSeq.sortBy(_.size).headOption
+  }
+
   override def run: IO[Unit] = for {
     input <- read("202207").compile.toList.map(_.mkString("\n"))
 
     parsedInput = commands.parse(input).toOption.get._2
     result      = interpret(parsedInput.toList)
 
-    _ <- IO.println(result.map(_.name))
+    part1 = sumOfAllUnder100000(result)
+
+    totalUsed  = Dir("root", content = result).size
+    needToFree = max(30000000 - (70000000 - totalUsed), 0)
+
+    part2 = leastEnough(result, needToFree)
+
+    _ <- IO.println(s"Part 1: $part1")
+    _ <- IO.println(s"Part 2: ${part2.map(_.size)}")
   } yield ()
 }
