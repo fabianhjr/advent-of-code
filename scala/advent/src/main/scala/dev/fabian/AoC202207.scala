@@ -12,33 +12,22 @@ object AoC202207 extends IOApp.Simple {
 
   sealed trait Command
 
-  sealed trait FS {
-    def name: String
-    def size: Int
-  }
-  case class File(size: Int, name: String)       extends FS {
-    // No Slashes in Name
-    require(name.forall(c => c.isLetter || c == '.'))
-  }
-  case class Dir(name: String, content: Set[FS]) extends FS {
-    // No Slashes in Name
-    require(name.forall(_.isLetter))
-    // No Name Clashes
-    require(content.groupBy(_.name).forall(_._2.size == 1))
-
-    lazy val size: Int = content.partition(_.isInstanceOf[Dir]) match {
-      case (dirs, files) =>
-        dirs.map(_.asInstanceOf[Dir].size).sum +
-          files.map(_.asInstanceOf[File].size).sum
-    }
-  }
-
   sealed trait CD               extends Command
   case object CDRoot            extends CD
   case object CDUp              extends CD
   case class CDDir(dir: String) extends CD
 
-  case class LS(fs: NonEmptyList[FS]) extends Command
+  case class LS(content: NonEmptyList[FS]) extends Command
+
+  sealed trait FS {
+    def name: String
+    def size: Int
+  }
+
+  case class File(size: Int, name: String)       extends FS
+  case class Dir(name: String, content: Set[FS]) extends FS {
+    lazy val size: Int = content.map(_.size).sum
+  }
 
   // Parsers
 
@@ -64,17 +53,17 @@ object AoC202207 extends IOApp.Simple {
   val commands: Parser[NonEmptyList[Command]] =
     (commandStart *> (changeDir | list)).repSep(newline)
 
-  def addInfo(wd: Seq[String], info: Set[FS], fs: Set[FS]): Set[FS] =
+  // Functions
+
+  def addInfo(wd: Seq[String], info: Set[FS], content: Set[FS]): Set[FS] =
     wd match {
-      case Nil              => fs union info
+      case Nil              => content union info
       case Seq(dirName, _*) =>
-        val fsDir         = fs.filter(_.name == dirName)
-        assert(fsDir.size <= 1)
-        assert(fsDir.forall(_.isInstanceOf[Dir]))
-        val dirContent    =
-          fsDir.headOption.map(_.asInstanceOf[Dir].content).getOrElse(Set.empty)
-        val newDirContent = Dir(dirName, addInfo(wd.drop(1), info, dirContent))
-        fs.filterNot(_.name == dirName) + newDirContent
+        val dirToUpdate = content
+          .find(_.name == dirName)
+          .fold(Set.empty)(_.asInstanceOf[Dir].content)
+        val udatedDir   = Dir(dirName, addInfo(wd.drop(1), info, dirToUpdate))
+        content.filterNot(_.name == dirName) + udatedDir
     }
 
   @tailrec
