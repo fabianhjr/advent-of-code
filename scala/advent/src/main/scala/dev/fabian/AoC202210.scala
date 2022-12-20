@@ -46,7 +46,7 @@ object AoC202210 extends IOApp.Simple {
     commands = inputs.map(_.toOption.get._2)
     result   = interpret(commands)
 
-    part1 = Seq(20, 60, 100, 140, 180, 220).map(i => i * result(i - 1)).sum
+    part1 = (20 to 220 by 40).map(i => i * result(i - 1)).sum
     part2 = result.zipWithIndex
               .map { case (signal, idx) =>
                 if (abs(signal - (idx % 40)) <= 1) '#' else '.'
