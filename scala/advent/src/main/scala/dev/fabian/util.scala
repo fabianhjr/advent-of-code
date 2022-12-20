@@ -12,7 +12,12 @@ def read(file: String) =
 val space: Parser[Unit]   = Parser.char(' ')
 val newline: Parser[Unit] = Parser.char('\n')
 
-val integer: Parser[Int] = Parser.charsWhile(_.isDigit).map(_.toInt)
+val integer: Parser[Int] =
+  (Parser.char('-').?.with1 ~ Parser.charsWhile(_.isDigit).map(_.toInt))
+    .map {
+      case (Some(()), num) => (-num)
+      case (None, num)     => (num)
+    }
 val word: Parser[String] = Parser.charsWhile(_.isLetter)
 
 val filename: Parser[String] =
